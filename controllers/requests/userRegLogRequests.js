@@ -107,7 +107,7 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 const sendVerificationEmail = asyncHandler(async ({ _id, email }, res) => {
-  const redirectUrl = "http://localhost:3000/aktywacja-konta";
+  const redirectUrl = "https://scratchcourse.netlify.app/aktywacja-konta";
   const uniqueString = uuidv4() + _id;
 
   try {
@@ -116,8 +116,8 @@ const sendVerificationEmail = asyncHandler(async ({ _id, email }, res) => {
     let hashedUniqueString = await bcrypt.hash(uniqueString, salt);
 
     //making sure there's no "/" and "\" characters in the string
-    hashedUniqueString = hashedResetString.split("/").join("");
-    hashedUniqueString = hashedResetString.split("\\").join("");
+    hashedUniqueString = hashedUniqueString.split("/").join("");
+    hashedUniqueString = hashedUniqueString.split("\\").join("");
 
     const mailOptions = {
       from: process.env.AUTH_EMAIL,
@@ -237,7 +237,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     // check if user with such email already exists in the database
     const userExists = await User.findOne({ email: req.body.email });
 
-    if (userExists) {
+    if (userExists && req.user._id.toString() !== userExists._id.toString()) {
       res.status(404);
       throw new Error("Użytkownik z podanym adresem e-mail już istnieje");
     }
@@ -261,7 +261,7 @@ const requestPasswordReset = asyncHandler(async (req, res) => {
   const { email, redirectUrl } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email });
     if (user) {
       if (user.verified) {
         sendResetEmail(user, redirectUrl, res);
